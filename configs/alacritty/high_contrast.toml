@@ -1,0 +1,44 @@
+# Colors (High Contrast)
+
+# Default colors
+[colors.primary]
+background = '#000000'
+foreground = '#ffffff'
+dim_foreground = '#ffffff'
+
+[colors.cursor]
+text = '#000000'
+cursor = '#ffffff'
+
+# Normal colors
+[colors.normal]
+black   = '#696969' # black as darkish grey on a black background
+red     = '#ff0000'
+green   = '#00ff00'
+yellow  = '#ffff00'
+blue    = '#0000ff'
+magenta = '#ff00ff'
+cyan    = '#00ffff'
+white   = '#ffffff'
+
+# Bright colors
+[colors.bright]
+black   = '#696969' # black as darkish grey on a black background
+red     = '#ff0000'
+green   = '#00ff00'
+yellow  = '#ffff00'
+blue    = '#0000ff'
+magenta = '#ff00ff'
+cyan    = '#00ffff'
+white   = '#ffffff'
+
+# Bright colors
+[colors.dim]
+black   = '#696969' # black as darkish grey on a black background
+red     = '#ff0000'
+green   = '#00ff00'
+yellow  = '#ffff00'
+blue    = '#0000ff'
+magenta = '#ff00ff'
+cyan    = '#00ffff'
+white   = '#ffffff'

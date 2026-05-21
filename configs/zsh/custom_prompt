@@ -1,0 +1,134 @@
+# Format PROMPT: 
+# For Glyphs: Use MesloLGSDZ Nerd Font Mono (or any from the MesloLG Nerd Font Family)
+if [[ $(defaults read -g AppleInterfaceStyle 2>/dev/null) == "Dark" ]]; then
+  PROMPT_THEME=dark
+else
+  PROMPT_THEME=light
+fi
+
+# DARK
+if [[ $PROMPT_THEME == dark ]]; then
+  c_sym=15
+  c_user=10
+  c_host=11
+  c_dir=14
+  c_gitlabel=15
+  c_branch=13
+  c_staged=10
+  c_unstaged=208
+  c_untracked=9
+  c_time=94
+  c_ok=10
+  c_err=9
+
+# LIGHT (256-index replacements)
+else
+  c_sym=0
+  c_user=22
+  c_host=94
+  c_dir=25
+  c_gitlabel=0
+  c_branch=90
+  c_staged=22
+  c_unstaged=166
+  c_untracked=124
+  c_time=58
+  c_ok=22
+  c_err=124
+fi
+
+# Load version control information
+autoload -Uz vcs_info add-zsh-hook
+
+# Enable git backend explicitly
+zstyle ':vcs_info:*' enable git
+
+# Format the vcs_info_msg_0_ variable with “dirty” markers when there are changes
+zstyle ':vcs_info:git:*' check-for-changes true
+zstyle ':vcs_info:git:*' stagedstr "%F{$c_staged} %f"
+zstyle ':vcs_info:git:*' unstagedstr "%F{$c_unstaged} %f"
+zstyle ':vcs_info:git:*' formats " %F{$c_gitlabel}%f %F{$c_branch}%b%f%c%u"
+
+# Add count hook
+zstyle ':vcs_info:git+set-message:*' hooks git-counts
+
++vi-git-counts() {
+  # Count staged, unstaged, untracked files (fast + robust)
+  local staged_count unstaged_count untracked_count
+
+  # Staged (index)
+  staged_count=$(
+    git diff --cached --name-only 2>/dev/null | wc -l | tr -d '[:space:]'
+  )
+
+  # Unstaged (working tree)
+  unstaged_count=$(
+    git diff --name-only 2>/dev/null | wc -l | tr -d '[:space:]'
+  )
+
+  # Untracked (not ignored)
+  untracked_count=$(
+    git ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d '[:space:]'
+  )
+
+  # Build staged segment (replaces %c when >0)
+  if (( staged_count > 0 )); then
+    hook_com[staged]="%F{$c_staged} (${staged_count})%f"
+  else
+    hook_com[staged]=''
+  fi
+
+  # Build unstaged+untracked segment (replaces %u when any >0)
+  local u=''
+  if (( unstaged_count > 0 )); then
+    u+="%F{$c_unstaged} (${unstaged_count})%f"
+  fi
+  if (( untracked_count > 0 )); then
+    u+="${u:+}%F{$c_untracked} (${untracked_count})%f"
+  fi
+  hook_com[unstaged]="$u"
+}
+
+# (Optional) show nothing when not in a repo
+zstyle ':vcs_info:*' disable-patterns ''
+
+# Run vcs_info before every prompt
+precmd_vcsinfo() { vcs_info }
+add-zsh-hook precmd precmd_vcsinfo
+ 
+# Allow variable expansion in PROMPT
+setopt PROMPT_SUBST
+
+# Track command execution time
+zmodload zsh/datetime   # gives you EPOCHREALTIME with microsecond precision
+
+# Called before every command
+preexec() {
+  cmd_start=$EPOCHREALTIME
+}
+
+# Called before each new prompt is shown
+precmd() {
+  if [[ -n $cmd_start ]]; then
+    local now=$EPOCHREALTIME
+    local elapsed=$(( (now - cmd_start) * 1000 ))   # ms
+    # Format into seconds with 3 decimals
+    last_duration=$(printf "%.3f" $((elapsed))e-3)
+    cmd_start=""
+  else
+    last_duration=""
+  fi
+}
+
+prompt_status() {
+  if [[ $? -eq 0 ]]; then
+    [[ -n $last_duration ]] && echo " %F{$c_ok}%f %F{$c_sym}%f %F{$c_time} ${last_duration}s%f"
+  else
+    [[ -n $last_duration ]] && echo " %F{$c_err}%f %F{$c_sym}%f %F{$c_time} ${last_duration}s%f"
+  fi
+}
+
+# Set up the prompt (with git branch name)
+PROMPT="%F{$c_user}%n%f %F{$c_sym}%f %F{$c_host}%m%f %F{$c_sym}%f %F{$c_dir}%4~%f
+\${vcs_info_msg_0_}\$(prompt_status) \$( [[ \$EUID -eq 0 ]] && echo \"%F{$c_user}#%f\" || echo \"%F{$c_user}%f\" ) "
+# Format PROMPT end
