@@ -1,0 +1,12 @@
+# Custom build Cypress 14.1.0 image from base instead of using the factory image
+
+FROM 339765050942.dkr.ecr.eu-west-1.amazonaws.com/docker-hub/cypress/base:22.14.0
+
+WORKDIR /
+RUN mkdir app
+WORKDIR /app
+RUN npm init -y
+RUN npm install typescript@5
+RUN npm install cypress@14.1.0
+
+ENTRYPOINT []
