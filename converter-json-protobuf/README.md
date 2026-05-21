@@ -10,7 +10,7 @@ It is intended for cases where protobuf traffic needs to be inspected, edited, o
 4. Re-encode the JSON back into protobuf binary.
 5. Use the modified payload for testing, for example through Charles Proxy Map Local.
 
-This is also useful when generating or modifying test payloads against another repo that owns the protobuf schema, such as `anghamak`.
+This is also useful when generating or modifying test payloads against another repo that owns the protobuf schema, such as a service repo with shared API definitions.
 
 ## How It Works
 
@@ -72,30 +72,30 @@ brew install protobuf buf
 ```bash
 python3 converter-json-protobuf/convert_protobuf_json.py \
   -root . \
-  -proto-file anghamak/osn/subs/v1/entitlements.proto \
-  -message anghamak.osn.subs.v1.GetPurchasesEntitlementsResponse \
-  -input-bin get-purchases-entitlements.bin \
-  -output-json get-purchases-entitlements.json
+  -proto-file example/orders/v1/order_service.proto \
+  -message example.orders.v1.GetOrderResponse \
+  -input-bin example-order-response.bin \
+  -output-json example-order-response.json
 ```
 
 ```bash
 python3 converter-json-protobuf/convert_protobuf_json.py \
   -root . \
   -tmp-dir ./converter-json-protobuf/tmp \
-  -proto-file anghamak/osn/subs/v1/entitlements.proto \
-  -message anghamak.osn.subs.v1.GetPurchasesEntitlementsResponse \
-  -input-json sample-response.json \
-  -output-bin sample-response.bin
+  -proto-file example/orders/v1/order_service.proto \
+  -message example.orders.v1.GetOrderResponse \
+  -input-json example-order-response.json \
+  -output-bin example-order-response.bin
 ```
 
 ```bash
 python3 converter-json-protobuf/convert_protobuf_json.py \
   -root . \
   -buf-lock ./buf.lock \
-  -proto-file anghamak/osn/subs/v1/entitlements.proto \
-  -message anghamak.osn.subs.v1.GetPurchasesEntitlementsResponse \
-  -input-bin get-purchases-entitlements.bin \
-  -output-json get-purchases-entitlements.json
+  -proto-file example/orders/v1/order_service.proto \
+  -message example.orders.v1.GetOrderResponse \
+  -input-bin example-order-response.bin \
+  -output-json example-order-response.json
 ```
 
 ```bash
