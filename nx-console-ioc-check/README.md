@@ -12,17 +12,31 @@ This script consolidates the known IOCs for that incident into one self-containe
 
 ## Usage
 
+The script ships without the executable bit set in some checkouts, so make it runnable first:
+
+```bash
+chmod +x check-nx-console-ioc.sh
+```
+
+Then run it. The script works **with or without `sudo`** — pick based on how thorough you need the scan to be.
+
+**Without sudo** (quick, no password prompt):
+
 ```bash
 ./check-nx-console-ioc.sh
 ```
 
-For the most thorough scan (full sudoers inspection and complete unified-log access), run it with elevated privileges:
+This covers the majority of probes. The trade-off is reduced coverage in two areas:
+- **Section 11 (sudoers tampering)** — the contents of `/etc/sudoers` and `/etc/sudoers.d/` cannot be read, so `NOPASSWD` entries are not inspected. Only the modification times are reported.
+- **Section 7 (unified logs)** — `log show` returns less data without elevated privileges and without Terminal Full Disk Access.
+
+**With sudo** (full coverage):
 
 ```bash
 sudo ./check-nx-console-ioc.sh
 ```
 
-Granting Terminal **Full Disk Access** in *System Settings → Privacy & Security* improves unified-log coverage in section 7.
+For the most complete unified-log results, also grant Terminal **Full Disk Access** under *System Settings → Privacy & Security*.
 
 ### Exit codes
 
