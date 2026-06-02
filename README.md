@@ -10,5 +10,6 @@ A personal collection of small, self-contained tools, scripts, and support asset
 - **[fonts](./fonts)** — Archived Meslo Nerd Fonts files used by the terminal and prompt configuration in this repo.
 - **[nx-console-ioc-check](./nx-console-ioc-check)** — Read-only macOS scanner for indicators of compromise from the malicious Nx Console `18.95.0` supply-chain incident.
 - **[shell](./shell)** — Small shell utilities and terminal helpers.
+- **[steam](./steam)** — Steam-related utilities, including macOS scripts for finding game files and cleaning up Steam app data. See `steam/macos/README.md` for usage and `chmod +x` setup.
 
 See each subdirectory for usage details where available.
