@@ -1,0 +1,66 @@
+# =====================================================================
+# Ghostty Configuration
+# Matched to Terminal.app "Basic: Custom" profile
+# Font: MesloLGSDZ Nerd Font Mono
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# Colors
+# ---------------------------------------------------------------------
+
+background = #1d1d1d
+foreground = #ffffff
+
+selection-background = #233542
+selection-foreground = #ffffff
+
+background-opacity = 1.0
+
+# ANSI palette
+
+palette = 0=#35424c
+palette = 1=#b45648
+palette = 2=#6caa71
+palette = 3=#c4ac62
+palette = 4=#6d96b4
+palette = 5=#bd7bcd
+palette = 6=#7ccbcd
+palette = 7=#dee5eb
+
+palette = 8=#465c6d
+palette = 9=#ff6e67
+palette = 10=#00ff00
+palette = 11=#ffff00
+palette = 12=#67b5ed
+palette = 13=#d389e5
+palette = 14=#00ffff
+palette = 15=#ffffff
+
+# ---------------------------------------------------------------------
+# Font
+# ---------------------------------------------------------------------
+
+font-family = "MesloLGSDZ Nerd Font Mono"
+font-family-bold = "MesloLGSDZ Nerd Font Mono"
+font-family-italic = "MesloLGSDZ Nerd Font Mono"
+font-family-bold-italic = "MesloLGSDZ Nerd Font Mono"
+
+font-size = 12
+font-thicken = true
+font-feature = -liga
+
+adjust-cell-height = 1
+
+# ---------------------------------------------------------------------
+# Cursor
+# ---------------------------------------------------------------------
+
+cursor-color = #ffffff
+cursor-style = block
+cursor-style-blink = true
+
+# ---------------------------------------------------------------------
+# Prevent shell integration from overriding cursor shape
+# ---------------------------------------------------------------------
+
+shell-integration-features = no-cursor
