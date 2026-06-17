@@ -1,0 +1,36 @@
+# ---------------------------------------------------------------------
+# Colors
+# ---------------------------------------------------------------------
+
+background = #f7f7f7
+foreground = #1c1c1c
+
+selection-background = #c9dcec
+selection-foreground = #000000
+
+cursor-color = #1c1c1c
+
+background-opacity = 1.0
+
+# ---------------------------------------------------------------------
+# ANSI palette
+# ---------------------------------------------------------------------
+# Normal colors
+palette = 0=#1c1c1c
+palette = 1=#9f463b
+palette = 2=#227a33
+palette = 3=#8a6f00
+palette = 4=#245f87
+palette = 5=#7f4a91
+palette = 6=#2b7779
+palette = 7=#d8d8d8
+
+# Bright colors
+palette = 8=#5f6f7a
+palette = 9=#c9362c
+palette = 10=#008000
+palette = 11=#9a8500
+palette = 12=#006bb6
+palette = 13=#9c4bb3
+palette = 14=#008b8b
+palette = 15=#ffffff

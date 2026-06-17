@@ -1,0 +1,33 @@
+# ---------------------------------------------------------------------
+# Theme
+# ---------------------------------------------------------------------
+
+theme = light:custom-light,dark:custom-dark
+
+# ---------------------------------------------------------------------
+# Font
+# ---------------------------------------------------------------------
+
+font-family = "MesloLGSDZ Nerd Font Mono"
+font-family-bold = "MesloLGSDZ Nerd Font Mono"
+font-family-italic = "MesloLGSDZ Nerd Font Mono"
+font-family-bold-italic = "MesloLGSDZ Nerd Font Mono"
+
+font-size = 12
+font-thicken = true
+font-feature = -liga
+
+adjust-cell-height = 1
+
+# ---------------------------------------------------------------------
+# Cursor
+# ---------------------------------------------------------------------
+
+cursor-style = block
+cursor-style-blink = true
+
+# ---------------------------------------------------------------------
+# Prevent shell integration from overriding cursor shape
+# ---------------------------------------------------------------------
+
+shell-integration-features = no-cursor
