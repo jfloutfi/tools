@@ -64,11 +64,21 @@ set_prompt_colors() {
   # Update vcs_info colors dynamically
   zstyle ':vcs_info:git:*' stagedstr "%F{$c_staged} %f"
   zstyle ':vcs_info:git:*' unstagedstr "%F{$c_unstaged} %f"
-  zstyle ':vcs_info:git:*' formats " %F{$c_gitlabel}%f %F{$c_branch}%b%f%c%u"
 
-  # Rebuild PROMPT dynamically so current tabs pick up theme changes
-  PROMPT="%F{$c_user}%n%f %F{$c_sym}%f %F{$c_host}%m%f %F{$c_sym}%f %F{$c_dir}%4~%f
-\${vcs_info_msg_0_}\$(prompt_status) \$( [[ \$EUID -eq 0 ]] && echo \"%F{$c_user}#%f\" || echo \"%F{$c_user}%f\" ) "
+  # Git line:
+  # Only appears when inside a git repo because vcs_info_msg_0_ is empty otherwise.
+  zstyle ':vcs_info:git:*' formats "
+ %F{$c_gitlabel}%f %F{$c_branch}%b%f%c%u"
+
+  # Prompt layout:
+  # 1st line: user + host
+  # 2nd line: directory
+  # 3rd line: git info, only when in a git repo
+  # 4th line: command status, only after a command runs
+  # 5th line: prompt symbol
+  PROMPT='%F{$c_user}%n%f %F{$c_sym}%f %F{$c_host}%m%f
+ %F{$c_sym}%f %F{$c_dir}%~%f${vcs_info_msg_0_}$(prompt_status)
+ $( [[ $EUID -eq 0 ]] && echo "%F{$c_user}#%f" || echo "%F{$c_user}%f" ) '
 }
 
 # ---------------------------------------------------------------------
@@ -112,7 +122,7 @@ zstyle ':vcs_info:git+set-message:*' hooks git-counts
   fi
 
   if (( untracked_count > 0 )); then
-    u+="${u:+ }%F{$c_untracked}(${untracked_count})%f"
+    u+="${u:+ }%F{$c_untracked} (${untracked_count})%f"
   fi
 
   hook_com[unstaged]="$u"
@@ -138,9 +148,11 @@ prompt_status() {
   fi
 
   if (( last_status == 0 )); then
-    echo " %F{$c_ok}%f %F{$c_sym}%f %F{$c_time} ${last_duration}s%f"
+    echo "
+ %F{$c_ok}%f %F{$c_sym}%f %F{$c_time} ${last_duration}s%f"
   else
-    echo " %F{$c_err}%f %F{$c_sym}%f %F{$c_time} ${last_duration}s%f"
+    echo "
+ %F{$c_err}%f %F{$c_sym}%f %F{$c_time} ${last_duration}s%f"
   fi
 }
 
