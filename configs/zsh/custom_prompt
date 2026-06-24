@@ -28,6 +28,7 @@ set_prompt_colors() {
     light)
       PROMPT_THEME=light
       ;;
+
     *)
       PROMPT_THEME=dark
       ;;
@@ -64,7 +65,7 @@ set_prompt_colors() {
     c_err=9
   fi
 
-  # Update vcs_info colors dynamically
+  # Update vcs_info colors
   zstyle ':vcs_info:git:*' stagedstr "%F{$c_staged} %f"
   zstyle ':vcs_info:git:*' unstagedstr "%F{$c_unstaged} %f"
 
@@ -85,21 +86,43 @@ set_prompt_colors() {
 }
 
 # ---------------------------------------------------------------------
+# ls colors
+# ---------------------------------------------------------------------
+
+set_ls_colors() {
+  export CLICOLOR=1
+
+  case "$PROMPT_THEME" in
+    light)
+      export LSCOLORS="exfxcxdxbxegedabagacad"
+      export LS_COLORS="di=01;34:ln=01;35:so=01;32:pi=33:ex=01;31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=34;42"
+      ;;
+
+    *)
+      export LSCOLORS="Gxfxcxdxbxegedabagacad"
+      export LS_COLORS="di=01;36:ln=01;35:so=01;32:pi=33:ex=01;33:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=34;42"
+      ;;
+  esac
+}
+
+# ---------------------------------------------------------------------
 # Theme switching
 # ---------------------------------------------------------------------
 
 prompt-dark() {
   export PROMPT_THEME=dark
   set_prompt_colors
+  set_ls_colors
   vcs_info
-  zle && zle reset-prompt 2>/dev/null
+  return 0
 }
 
 prompt-light() {
   export PROMPT_THEME=light
   set_prompt_colors
+  set_ls_colors
   vcs_info
-  zle && zle reset-prompt 2>/dev/null
+  return 0
 }
 
 # ---------------------------------------------------------------------
@@ -185,9 +208,6 @@ precmd_prompt() {
   # Capture this first, before anything else changes $?
   last_status=$?
 
-  # Re-check macOS appearance before every prompt
-  set_prompt_colors
-
   # Update last command duration
   if [[ -n $cmd_start ]]; then
     local now=$EPOCHREALTIME
@@ -199,11 +219,12 @@ precmd_prompt() {
     last_duration=""
   fi
 
-  # Update git info after theme colors are refreshed
+  # Update git info
   vcs_info
 }
 
 add-zsh-hook precmd precmd_prompt
 
-# Initialize prompt once for the first draw
+# Initialize prompt and ls colors once
 set_prompt_colors
+set_ls_colors
