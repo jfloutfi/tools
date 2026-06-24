@@ -14,7 +14,7 @@ setopt PROMPT_SUBST
 zmodload zsh/datetime 2>/dev/null
 
 # Runtime state
-PROMPT_THEME=""
+: ${PROMPT_THEME:=dark}
 cmd_start=""
 last_duration=""
 last_status=0
@@ -24,11 +24,14 @@ last_status=0
 # ---------------------------------------------------------------------
 
 set_prompt_colors() {
-  if [[ $(defaults read -g AppleInterfaceStyle 2>/dev/null) == "Dark" ]]; then
-    PROMPT_THEME=dark
-  else
-    PROMPT_THEME=light
-  fi
+  case "$PROMPT_THEME" in
+    light)
+      PROMPT_THEME=light
+      ;;
+    *)
+      PROMPT_THEME=dark
+      ;;
+  esac
 
   # DARK
   if [[ $PROMPT_THEME == dark ]]; then
@@ -79,6 +82,24 @@ set_prompt_colors() {
   PROMPT='%F{$c_user}%n%f %F{$c_sym}%f %F{$c_host}%m%f
  %F{$c_sym}%f %F{$c_dir}%~%f${vcs_info_msg_0_}$(prompt_status)
  $( [[ $EUID -eq 0 ]] && echo "%F{$c_user}#%f" || echo "%F{$c_user}%f" ) '
+}
+
+# ---------------------------------------------------------------------
+# Theme switching
+# ---------------------------------------------------------------------
+
+prompt-dark() {
+  export PROMPT_THEME=dark
+  set_prompt_colors
+  vcs_info
+  zle && zle reset-prompt 2>/dev/null
+}
+
+prompt-light() {
+  export PROMPT_THEME=light
+  set_prompt_colors
+  vcs_info
+  zle && zle reset-prompt 2>/dev/null
 }
 
 # ---------------------------------------------------------------------
