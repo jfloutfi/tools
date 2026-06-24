@@ -5,7 +5,7 @@
 background = #1d1d1d
 foreground = #ffffff
 
-selection-background = #233542
+selection-background = #3a5073
 selection-foreground = #ffffff
 
 cursor-color = #ffffff
@@ -15,6 +15,7 @@ background-opacity = 1.0
 # ---------------------------------------------------------------------
 # ANSI palette
 # ---------------------------------------------------------------------
+
 # Normal colors
 palette = 0=#35424c
 palette = 1=#b45648
@@ -28,9 +29,9 @@ palette = 7=#dee5eb
 # Bright colors
 palette = 8=#465c6d
 palette = 9=#ff6e67
-palette = 10=#00ff00
-palette = 11=#ffff00
+palette = 10=#5fff5f
+palette = 11=#ffff5f
 palette = 12=#67b5ed
-palette = 13=#d389e5
-palette = 14=#00ffff
+palette = 13=#d787ff
+palette = 14=#5fffff
 palette = 15=#ffffff

@@ -39,26 +39,26 @@ set_prompt_colors() {
     c_gitlabel=15
     c_branch=13
     c_staged=10
-    c_unstaged=208
+    c_unstaged=214
     c_untracked=9
-    c_time=94
+    c_time=111
     c_ok=10
     c_err=9
 
   # LIGHT
   else
-    c_sym=0
-    c_user=22
-    c_host=94
-    c_dir=25
-    c_gitlabel=0
-    c_branch=90
-    c_staged=22
+    c_sym=15
+    c_user=10
+    c_host=11
+    c_dir=12
+    c_gitlabel=15
+    c_branch=13
+    c_staged=10
     c_unstaged=166
-    c_untracked=124
-    c_time=58
-    c_ok=22
-    c_err=124
+    c_untracked=9
+    c_time=8
+    c_ok=10
+    c_err=9
   fi
 
   # Update vcs_info colors dynamically
