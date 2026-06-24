@@ -24,7 +24,7 @@ adjust-cell-height = 1
 # ---------------------------------------------------------------------
 
 cursor-style = bar
-cursor-style-blink = true
+cursor-style-blink = false
 
 # ---------------------------------------------------------------------
 # Prevent shell integration from overriding cursor shape
