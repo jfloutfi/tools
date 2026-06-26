@@ -2,6 +2,20 @@
 
 `convert_protobuf_json.py` converts protobuf payloads between binary wire format and JSON.
 
+> **Before using the script, run the dependency check first.** It confirms your
+> environment is set up correctly and, in particular, that your `protoc` is compatible
+> with the installed `protobuf` Python runtime (a common failure point):
+>
+> ```bash
+> python3 converter-json-protobuf/convert_protobuf_json.py -check-deps
+> ```
+>
+> If it reports a problem, follow the tip it prints — usually pointing `-protoc` (or the
+> `PROTOC` env var) at a matching `protoc`. See
+> [protoc / runtime version compatibility](#protoc--runtime-version-compatibility) for
+> details. The check exits non-zero on failure, so it also works as a preflight step in
+> scripts.
+
 It is intended for cases where protobuf traffic needs to be inspected, edited, or replayed outside the application. A common workflow is:
 
 1. Capture a protobuf request or response with a proxy tool such as Charles Proxy.
@@ -113,6 +127,14 @@ python3 converter-json-protobuf/convert_protobuf_json.py \
 ```
 
 ## Examples
+
+Verify the environment first (recommended before any conversion):
+
+```bash
+python3 converter-json-protobuf/convert_protobuf_json.py -check-deps
+```
+
+Decode protobuf binary to JSON:
 
 ```bash
 python3 converter-json-protobuf/convert_protobuf_json.py \
