@@ -53,6 +53,7 @@ The default generated workspace and tracking file are already ignored by the rep
 - `-protoc`: optional path to the `protoc` binary used to generate bindings; defaults to the `PROTOC` environment variable, then `protoc` on `PATH`
 - `-regen`: regenerate generated protobuf Python bindings and Buf exports
 - `-cleanup`: remove the resolved generated workspace
+- `-check-deps`: verify the required tooling (protobuf runtime, `protoc`, `buf`) is installed and that `protoc` is compatible with the protobuf runtime, then exit; honors `-protoc`/`PROTOC` and does not require `-root`
 
 ## Requirements
 
@@ -67,6 +68,19 @@ Example installation:
 python3 -m pip install --user protobuf
 brew install protobuf buf
 ```
+
+You can verify your environment at any time with `-check-deps`, which reports the
+versions it finds and confirms `protoc` is compatible with the protobuf runtime:
+
+```bash
+python3 converter-json-protobuf/convert_protobuf_json.py -check-deps
+# or check a specific protoc:
+python3 converter-json-protobuf/convert_protobuf_json.py -check-deps \
+  -protoc /opt/homebrew/opt/protobuf@33/bin/protoc
+```
+
+It exits non-zero if a required dependency is missing or incompatible, so it can be
+used as a preflight check in scripts.
 
 ### protoc / runtime version compatibility
 

@@ -253,6 +253,109 @@ def cleanup_generated_artifacts(tmp_dir: Path) -> None:
   print("Cleanup complete. No generated workspace found.")
 
 
+def _tool_version(binary: str, version_args: list[str]) -> str | None:
+  """Return the version string for an external tool, or None if unavailable."""
+  try:
+    result = subprocess.run([binary, *version_args], capture_output=True, text=True)
+  except (FileNotFoundError, OSError):
+    return None
+  if result.returncode != 0:
+    return None
+  return result.stdout.strip() or result.stderr.strip() or None
+
+
+def _check_protoc_runtime_compat(protoc_bin: str) -> tuple[bool, str]:
+  """Compile a trivial proto with protoc and import it with the installed
+  protobuf runtime.
+
+  This reproduces the script's real codepath (protoc generate -> import), so it
+  catches gencode/runtime version mismatches exactly as a conversion run would.
+  """
+  import importlib.util
+  import tempfile
+
+  with tempfile.TemporaryDirectory() as raw_dir:
+    work = Path(raw_dir)
+    (work / "depcheck.proto").write_text(
+        'syntax = "proto3";\n'
+        "package depcheck;\n"
+        "message Ping { string msg = 1; }\n"
+    )
+    try:
+      subprocess.run(
+          [protoc_bin, f"--proto_path={work}", f"--python_out={work}", "depcheck.proto"],
+          check=True,
+          capture_output=True,
+          text=True,
+      )
+    except subprocess.CalledProcessError as exc:
+      return False, (exc.stderr.strip() or str(exc))
+    generated = work / "depcheck_pb2.py"
+    if not generated.exists():
+      return False, "protoc produced no Python output"
+    spec = importlib.util.spec_from_file_location("depcheck_pb2", generated)
+    module = importlib.util.module_from_spec(spec)
+    try:
+      spec.loader.exec_module(module)
+    except Exception as exc:  # noqa: BLE001 - surface the runtime's own message
+      return False, (str(exc).splitlines()[0] if str(exc) else repr(exc))
+    return True, "protoc gencode loads under the installed runtime"
+
+
+def check_dependencies(protoc_bin: str) -> int:
+  """Verify required tooling is present and mutually compatible.
+
+  Returns an exit code: 0 if everything needed is installed and compatible,
+  1 if a hard requirement is missing or incompatible.
+  """
+  ok = True
+  print("Checking convert_protobuf_json dependencies ...\n")
+
+  # protobuf Python runtime (hard requirement; nothing else matters without it).
+  try:
+    import google.protobuf as _pb
+
+    print(f"[ok]   protobuf runtime : {_pb.__version__}")
+  except Exception as exc:  # noqa: BLE001
+    print(f"[FAIL] protobuf runtime : not importable ({exc})")
+    print("       install with: python3 -m pip install --user protobuf")
+    return 1
+
+  # protoc (hard requirement) and its compatibility with the runtime.
+  protoc_version = _tool_version(protoc_bin, ["--version"])
+  if protoc_version is None:
+    print(f"[FAIL] protoc           : not found (looked for '{protoc_bin}')")
+    print("       install with: brew install protobuf")
+    print("       or pass -protoc <path> / set PROTOC to a specific binary")
+    ok = False
+  else:
+    protoc_path = shutil.which(protoc_bin) or protoc_bin
+    print(f"[ok]   protoc           : {protoc_version} ({protoc_path})")
+    compatible, detail = _check_protoc_runtime_compat(protoc_bin)
+    if compatible:
+      print(f"[ok]   protoc/runtime   : compatible ({detail})")
+    else:
+      print(f"[FAIL] protoc/runtime   : incompatible ({detail})")
+      print("       the protoc gencode version must be <= the protobuf runtime version")
+      print("       point at a matching protoc with -protoc <path> or PROTOC")
+      ok = False
+
+  # buf (soft requirement: only needed for buf.lock dependencies).
+  buf_version = _tool_version("buf", ["--version"])
+  if buf_version is None:
+    print("[warn] buf              : not found (only needed for buf.lock dependencies)")
+    print("       install with: brew install buf")
+  else:
+    print(f"[ok]   buf              : {buf_version}")
+
+  print()
+  if ok:
+    print("All required dependencies are installed and compatible.")
+    return 0
+  print("One or more required dependencies are missing or incompatible (see above).")
+  return 1
+
+
 def ensure_generated_module(
     proto_path: Path,
     root: Path,
@@ -326,14 +429,18 @@ def parse_args() -> argparse.Namespace:
           "-message anghamak.osn.tvguide.v1.GetChannelsResponse "
           "-input-bin /tmp/input.bin -output-json /tmp/output.json\n\n"
           "  Clean generated artifacts:\n"
-          "    python3 tools/convert_protobuf_json.py -root . -cleanup"
+          "    python3 tools/convert_protobuf_json.py -root . -cleanup\n\n"
+          "  Check that required tooling is installed and compatible:\n"
+          "    python3 tools/convert_protobuf_json.py -check-deps"
       ),
   )
   parser.add_argument(
       "-root",
       type=Path,
-      required=True,
-      help="Base directory used to resolve proto files and imports.",
+      help=(
+          "Base directory used to resolve proto files and imports."
+          " Required for conversion and cleanup; not needed with -check-deps."
+      ),
   )
   parser.add_argument(
       "-tmp-dir",
@@ -420,10 +527,28 @@ def parse_args() -> argparse.Namespace:
           " otherwise the default script-local tmp/ directory."
       ),
   )
+  parser.add_argument(
+      "-check-deps",
+      action="store_true",
+      help=(
+          "Check that the required tooling (protobuf runtime, protoc, buf) is"
+          " installed and that protoc is compatible with the protobuf runtime,"
+          " then exit. Honors -protoc / PROTOC when resolving protoc. Exits"
+          " non-zero if a required dependency is missing or incompatible."
+      ),
+  )
   return parser.parse_args()
 
 
 def determine_conversion_direction(args: argparse.Namespace) -> str:
+  if args.check_deps:
+    if (args.cleanup or args.input_json or args.output_bin
+        or args.input_bin or args.output_json):
+      raise SystemExit(
+          "-check-deps cannot be combined with conversion or cleanup arguments."
+      )
+    return "check"
+
   if args.cleanup:
     if args.input_json or args.output_bin or args.input_bin or args.output_json:
       raise SystemExit(
@@ -504,6 +629,11 @@ def decode_protobuf_to_json(args: argparse.Namespace, message_cls: type) -> None
 def main() -> None:
   args = parse_args()
   direction = determine_conversion_direction(args)
+  if direction == "check":
+    protoc_bin = args.protoc or os.environ.get("PROTOC") or "protoc"
+    sys.exit(check_dependencies(protoc_bin))
+  if args.root is None:
+    raise SystemExit("Missing required arguments: -root")
   missing = [
       name
       for name, value in {
