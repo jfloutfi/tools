@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -143,8 +144,24 @@ def _collect_proto_closure(proto_file: Path, include_paths: list[Path], root: Pa
   return ordered
 
 
+def _dep_from_entry(entry: dict[str, str] | None) -> tuple[str, str] | None:
+  """Extract (owner, repository) from a buf.lock dep entry (v1 or v2)."""
+  if not entry:
+    return None
+  # buf.lock v1: separate remote/owner/repository fields.
+  if entry.get("remote") == "buf.build" and entry.get("owner") and entry.get("repository"):
+    return entry["owner"], entry["repository"]
+  # buf.lock v2: single "name: buf.build/owner/repository" field.
+  name = entry.get("name")
+  if name:
+    parts = name.split("/")
+    if len(parts) == 3 and parts[0] == "buf.build":
+      return parts[1], parts[2]
+  return None
+
+
 def parse_buf_lock(buf_lock_path: Path) -> list[tuple[str, str]]:
-  """Return (owner, repository) tuples declared in buf.lock."""
+  """Return (owner, repository) tuples declared in buf.lock (v1 or v2)."""
   if not buf_lock_path.exists():
     return []
   deps: list[tuple[str, str]] = []
@@ -162,8 +179,9 @@ def parse_buf_lock(buf_lock_path: Path) -> list[tuple[str, str]]:
       break
     stripped = line.strip()
     if stripped.startswith("- "):
-      if current and current.get("remote") == "buf.build" and current.get("owner") and current.get("repository"):
-        deps.append((current["owner"], current["repository"]))
+      dep = _dep_from_entry(current)
+      if dep:
+        deps.append(dep)
       current = {}
       stripped = stripped[2:].strip()
       if stripped and ":" in stripped:
@@ -175,8 +193,9 @@ def parse_buf_lock(buf_lock_path: Path) -> list[tuple[str, str]]:
     if ":" in stripped:
       key, value = stripped.split(":", 1)
       current[key.strip()] = value.strip()
-  if current and current.get("remote") == "buf.build" and current.get("owner") and current.get("repository"):
-    deps.append((current["owner"], current["repository"]))
+  dep = _dep_from_entry(current)
+  if dep:
+    deps.append(dep)
   seen: set[tuple[str, str]] = set()
   unique_deps: list[tuple[str, str]] = []
   for dep in deps:
@@ -240,6 +259,7 @@ def ensure_generated_module(
     tmp_dir: Path,
     force_regen: bool = False,
     extra_proto_paths: list[Path] | None = None,
+    protoc_bin: str = "protoc",
 ) -> Path:
   """Generate *_pb2.py for the given proto if needed and return its relative path."""
   relative_proto, pb2_relative = _relative_paths(proto_path, root)
@@ -257,7 +277,7 @@ def ensure_generated_module(
   generated_file = _pb2_path_for_import(str(relative_proto), tmp_dir)
   ensure_tmp_root(tmp_dir)
   generated_file.parent.mkdir(parents=True, exist_ok=True)
-  proto_cmd = ["protoc", f"--proto_path={root}"]
+  proto_cmd = [protoc_bin, f"--proto_path={root}"]
   for extra_path in include_paths:
     proto_cmd.append(f"--proto_path={extra_path}")
   proto_cmd.append(f"--python_out={tmp_dir}")
@@ -375,6 +395,15 @@ def parse_args() -> argparse.Namespace:
       help=(
           "Allow fields that are not known to the selected message schema."
           " Unknown fields will be ignored."
+      ),
+  )
+  parser.add_argument(
+      "-protoc",
+      help=(
+          "Optional. Path to the protoc binary used to generate Python bindings."
+          " The protoc gencode version must be <= the installed protobuf"
+          " runtime (python3 -c 'import google.protobuf; print(google.protobuf.__version__)')."
+          " Defaults to the PROTOC environment variable, then 'protoc' on PATH."
       ),
   )
   parser.add_argument(
@@ -502,12 +531,14 @@ def main() -> None:
       tmp_dir,
       force=args.regen,
   )
+  protoc_bin = args.protoc or os.environ.get("PROTOC") or "protoc"
   pb2_relative = ensure_generated_module(
       proto_path,
       root,
       tmp_dir,
       force_regen=args.regen,
       extra_proto_paths=buf_include_paths,
+      protoc_bin=protoc_bin,
   )
   load_pb2_module(pb2_relative, tmp_dir, force_reload=args.regen)
   sym_db = symbol_database.Default()

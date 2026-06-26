@@ -50,6 +50,7 @@ The default generated workspace and tracking file are already ignored by the rep
 - `-input-bin`: protobuf binary file to decode
 - `-output-json`: output path for decoded JSON
 - `-allow-unknown-fields`: ignore unknown JSON fields while encoding
+- `-protoc`: optional path to the `protoc` binary used to generate bindings; defaults to the `PROTOC` environment variable, then `protoc` on `PATH`
 - `-regen`: regenerate generated protobuf Python bindings and Buf exports
 - `-cleanup`: remove the resolved generated workspace
 
@@ -65,6 +66,36 @@ Example installation:
 ```bash
 python3 -m pip install --user protobuf
 brew install protobuf buf
+```
+
+### protoc / runtime version compatibility
+
+The `protoc` used to generate bindings must emit gencode no newer than the installed
+`protobuf` Python runtime (the rule is *runtime >= gencode*). If `protoc` is ahead of
+the runtime, loading the generated `*_pb2.py` fails with a `VersionError` such as:
+
+```
+Detected incompatible Protobuf Gencode/Runtime versions ... gencode 7.35.1 runtime 6.33.6.
+```
+
+Check your runtime version with:
+
+```bash
+python3 -c 'import google.protobuf; print(google.protobuf.__version__)'
+```
+
+If your default `protoc` is too new, point the script at a matching one with `-protoc`
+(or the `PROTOC` env var) instead of changing your global `PATH`. For example, with a
+Homebrew keg-only `protobuf@33` installed alongside a newer default `protobuf`:
+
+```bash
+python3 converter-json-protobuf/convert_protobuf_json.py \
+  -protoc /opt/homebrew/opt/protobuf@33/bin/protoc \
+  -root . \
+  -proto-file example/orders/v1/order_service.proto \
+  -message example.orders.v1.GetOrderResponse \
+  -input-bin example-order-response.bin \
+  -output-json example-order-response.json
 ```
 
 ## Examples
