@@ -309,13 +309,15 @@ def check_dependencies(protoc_bin: str) -> int:
   1 if a hard requirement is missing or incompatible.
   """
   ok = True
+  protoc_incompatible = False
   print("Checking convert_protobuf_json dependencies ...\n")
 
   # protobuf Python runtime (hard requirement; nothing else matters without it).
   try:
     import google.protobuf as _pb
 
-    print(f"[ok]   protobuf runtime : {_pb.__version__}")
+    runtime_version = _pb.__version__
+    print(f"[ok]   protobuf runtime : {runtime_version}")
   except Exception as exc:  # noqa: BLE001
     print(f"[FAIL] protobuf runtime : not importable ({exc})")
     print("       install with: python3 -m pip install --user protobuf")
@@ -337,8 +339,8 @@ def check_dependencies(protoc_bin: str) -> int:
     else:
       print(f"[FAIL] protoc/runtime   : incompatible ({detail})")
       print("       the protoc gencode version must be <= the protobuf runtime version")
-      print("       point at a matching protoc with -protoc <path> or PROTOC")
       ok = False
+      protoc_incompatible = True
 
   # buf (soft requirement: only needed for buf.lock dependencies).
   buf_version = _tool_version("buf", ["--version"])
@@ -353,6 +355,21 @@ def check_dependencies(protoc_bin: str) -> int:
     print("All required dependencies are installed and compatible.")
     return 0
   print("One or more required dependencies are missing or incompatible (see above).")
+  if protoc_incompatible:
+    parts = runtime_version.split(".")
+    minor = parts[1] if len(parts) > 1 and parts[1].isdigit() else None
+    print()
+    print("Your protoc is newer than the installed protobuf runtime. Point the")
+    print("converter at a matching protoc with -protoc <path> or the PROTOC env var")
+    print("(no need to change your PATH); the same option applies to conversions. e.g.:")
+    if minor:
+      print(f"  brew install protobuf@{minor}")
+      print(
+          "  python3 convert_protobuf_json.py -check-deps"
+          f" -protoc /opt/homebrew/opt/protobuf@{minor}/bin/protoc"
+      )
+    else:
+      print("  python3 convert_protobuf_json.py -check-deps -protoc /path/to/matching/protoc")
   return 1
 
 
