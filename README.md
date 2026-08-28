@@ -4,9 +4,8 @@ A personal collection of small, self-contained tools, scripts, and support asset
 
 ## Contents
 
-- **[configs](./configs)** — Personal terminal and shell configuration snippets.
 - **[fonts](./fonts)** — Archived Meslo Nerd Fonts files used by the terminal and prompt configuration in this repo.
-- **[shell](./shell)** — Small shell utilities and terminal helpers.
+- **[shell](./shell)** — Shell utilities, terminal helpers, and personal terminal and shell configuration snippets.
 - **[steam](./steam)** — Steam-related utilities, including macOS scripts for finding game files and cleaning up Steam app data. See `steam/macos/README.md` for usage and `chmod +x` setup.
 
 See each subdirectory for usage details where available.

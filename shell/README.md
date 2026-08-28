@@ -1,11 +1,13 @@
-# Shell utilities
+# Shell utilities and configuration
 
-Small Zsh utilities for inspecting and working with the terminal.
+Small Zsh utilities for inspecting and working with the terminal, plus personal terminal and shell configuration snippets.
 
 ## Contents
 
 - `check-terminal-tools.sh` — Reports whether a curated set of terminal tools is installed, along with each tool's version, executable path, and detected installation source. It supports macOS (including Homebrew) and common Linux package ecosystems.
 - `colors.sh` — Prints a preview of all 256 terminal colors.
+- `configs/ghostty/` — Ghostty configuration and custom light/dark themes.
+- `configs/zsh/custom_prompt` — Custom Zsh prompt configuration.
 
 ## Usage
 
